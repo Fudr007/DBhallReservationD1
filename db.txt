@@ -1,0 +1,63 @@
+CREATE TABLE customer (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR2(100) NOT NULL,
+    email VARCHAR2(100) NOT NULL,
+    phone VARCHAR2(30),
+    customer_type VARCHAR2(20) NOT NULL CHECK (customer_type IN ('INDIVIDUAL', 'TEAM', 'CLUB')),
+    is_active NUMBER(1) DEFAULT 1 CHECK (is_active IN (0,1)),
+    created_at DATE DEFAULT SYSDATE
+);
+
+CREATE TABLE hall (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR2(100) NOT NULL,
+    sport_type VARCHAR2(30) NOT NULL CHECK (sport_type IN ('FOOTBALL', 'BASKETBALL', 'VOLLEYBALL', 'BADMINTON')),
+    hourly_rate NUMBER(8,2) NOT NULL,
+    capacity NUMBER NOT NULL,
+    available NUMBER(1) DEFAULT 1 CHECK (available IN (0,1))
+);
+
+CREATE TABLE reservation (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    customer_id INT NOT NULL,
+    start_time DATE NOT NULL,
+    end_time DATE NOT NULL,
+    status VARCHAR2(20) NOT NULL CHECK (status IN ('CREATED', 'CONFIRMED', 'CANCELLED')),
+    total_price NUMBER(10,2),
+    FOREIGN KEY (customer_id) REFERENCES customer(id),
+    CHECK (end_time > start_time)
+);
+
+CREATE TABLE reservation_hall (
+    reservation_id INT NOT NULL,
+    hall_id INT NOT NULL,
+    PRIMARY KEY (reservation_id, hall_id),
+    FOREIGN KEY (reservation_id) REFERENCES reservation(id) ON DELETE CASCADE,
+    FOREIGN KEY (hall_id) REFERENCES hall(id)
+);
+
+CREATE TABLE service (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR2(100) NOT NULL,
+    price_per_hour NUMBER(8,2) NOT NULL,
+    is_optional NUMBER(1) DEFAULT 1 CHECK (is_optional IN (0,1))
+);
+
+CREATE TABLE reservation_service (
+    reservation_id INT NOT NULL,
+    service_id INT NOT NULL,
+    hours NUMBER(5,2) NOT NULL,
+    PRIMARY KEY (reservation_id, service_id),
+    FOREIGN KEY (reservation_id) REFERENCES reservation(id) ON DELETE CASCADE,
+    FOREIGN KEY (service_id) REFERENCES service(id)
+);
+
+CREATE TABLE payment (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    reservation_id INT NOT NULL,
+    amount NUMBER(10,2) NOT NULL,
+    payment_method VARCHAR2(20) NOT NULL CHECK (payment_method IN ('CASH', 'CARD', 'TRANSFER')),
+    paid_at DATE DEFAULT SYSDATE,
+    successful NUMBER(1) DEFAULT 1 CHECK (successful IN (0,1)),
+    FOREIGN KEY (reservation_id) REFERENCES reservation(id)
+);
