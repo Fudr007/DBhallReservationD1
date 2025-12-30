@@ -1,47 +1,48 @@
 import cx_Oracle
 
+class CustomerError(Exception):
+    pass
 
 class Customer:
     def __init__(self, db):
         self.db = db
 
-    def create(self, name:str, email:str, phone:str, customer_type:str, active:int):
+    def create(self, name:str, email:str, phone:str, customer_type:str):
         try:
             cursor = self.db.connection.cursor()
-            cursor.execute("INSERT INTO CUSTOMER (NAME, EMAIL, PHONE, CUSTOMER_TYPE, ACTIVE) "
-                           "VALUES (:name, :email, :phone, :customer_type, :active)",
+            cursor.execute("INSERT INTO Customer (name, email, phone, customer_type) "
+                           "VALUES (:name, :email, :phone, :customer_type)",
                            {
                                "name": name,
                                 "email": email,
                                 "phone": phone,
-                                "customer_type": customer_type,
-                                "active": active
+                                "customer_type": customer_type
                             })
             self.db.connection.commit()
         except cx_Oracle.DatabaseError as e:
             error_obj, = e.args
             self.db.connection.rollback()
-            return f'Error: {error_obj.message}'
+            raise CustomerError(f'Customer database error: {error_obj.message}')
 
         except Exception as e:
-            return f'Error: {e}'
+            raise CustomerError(f'Customer error: {e}')
 
-    def update(self, attribute:str, value):
+    def update(self, attribute:str, value, email:str):
         try:
             cursor = self.db.connection.cursor()
-            cursor.execute(f"UPDATE CUSTOMER SET {attribute} = :value WHERE ID = :id",
+            cursor.execute(f"UPDATE CUSTOMER SET {attribute} = :value WHERE email = :email",
                            {
                                "value": value,
-                               "id": id
+                               "email": email
                            })
             self.db.connection.commit()
         except cx_Oracle.DatabaseError as e:
             error_obj, = e.args
             self.db.connection.rollback()
-            return f'Error: {error_obj.message}'
+            raise CustomerError(f'Customer database error: {error_obj.message}')
 
         except Exception as e:
-            return f'Error: {e}'
+            raise CustomerError(f'Customer error: {e}')
 
     def delete(self, email:str):
         try:
@@ -54,7 +55,7 @@ class Customer:
         except cx_Oracle.DatabaseError as e:
             error_obj, = e.args
             self.db.connection.rollback()
-            return f'Error: {error_obj.message}'
+            raise CustomerError(f'Customer database error: {error_obj.message}')
 
         except Exception as e:
-            return f'Error: {e}'
+            raise CustomerError(f'Customer error: {e}')

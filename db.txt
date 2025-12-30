@@ -10,7 +10,7 @@ CREATE TABLE customer (
 
 CREATE TABLE hall (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name VARCHAR2(100) NOT NULL,
+    name VARCHAR2(100) NOT NULL UNIQUE,
     sport_type VARCHAR2(30) NOT NULL CHECK (sport_type IN ('FOOTBALL', 'BASKETBALL', 'VOLLEYBALL', 'BADMINTON')),
     hourly_rate NUMBER(8,2) NOT NULL CHECK(hourly_rate >=0),
     capacity NUMBER NOT NULL CHECK(capacity > 0),
@@ -38,7 +38,7 @@ CREATE TABLE reservation_hall (
 
 CREATE TABLE service (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name VARCHAR2(100) NOT NULL,
+    name VARCHAR2(100) NOT NULL UNIQUE,
     price_per_hour NUMBER(8,2) NOT NULL CHECK(price_per_hour >=0),
     is_optional NUMBER(1) DEFAULT 1 CHECK (is_optional IN (0,1))
 );
