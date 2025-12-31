@@ -23,6 +23,7 @@ class Payment:
             self.db.connection.rollback()
             raise PaymentException(f'Payment database error: {error_obj.message}')
         except Exception as e:
+            self.db.connection.rollback()
             raise PaymentException(f'Payment error: {e}')
 
     def update(self, attribute:str, value, reservation_id:int):
@@ -39,6 +40,7 @@ class Payment:
             self.db.connection.rollback()
             raise PaymentException(f'Payment database error: {error_obj.message}')
         except Exception as e:
+            self.db.connection.rollback()
             raise PaymentException(f'Payment error: {e}')
 
     def delete(self, reservation_id:int):
@@ -52,6 +54,21 @@ class Payment:
         except cx_Oracle.DatabaseError as e:
             error_obj, = e.args
             self.db.connection.rollback()
+            raise PaymentException(f'Payment database error: {error_obj.message}')
+        except Exception as e:
+            self.db.connection.rollback()
+            raise PaymentException(f'Payment error: {e}')
+
+    def read(self, reservation_id:int):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM Payment WHERE reservation_id = :reservation_id",
+                           {
+                               'reservation_id': reservation_id
+                           })
+            return cursor.fetchone()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
             raise PaymentException(f'Payment database error: {error_obj.message}')
         except Exception as e:
             raise PaymentException(f'Payment error: {e}')

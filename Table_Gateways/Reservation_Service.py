@@ -24,6 +24,7 @@ class ReservationService:
             self.db.connection.rollback()
             raise ReservationServiceException(f'Reservation service database error: {error_obj.message}')
         except Exception as e:
+            self.db.connection.rollback()
             raise ReservationServiceException(f'Reservation service error: {e}')
 
     def update(self, reservation_id:int, service_id:int, hours:int):
@@ -41,6 +42,7 @@ class ReservationService:
             self.db.connection.rollback()
             raise ReservationServiceException(f'Reservation service database error: {error_obj.message}')
         except Exception as e:
+            self.db.connection.rollback()
             raise ReservationServiceException(f'Reservation service error: {e}')
 
     def delete(self, reservation_id:int, service_id:int):
@@ -55,6 +57,32 @@ class ReservationService:
         except cx_Oracle.DatabaseError as e:
             error_obj, = e.args
             self.db.connection.rollback()
+            raise ReservationServiceException(f'Reservation service database error: {error_obj.message}')
+        except Exception as e:
+            self.db.connection.rollback()
+            raise ReservationServiceException(f'Reservation service error: {e}')
+
+    def read(self, reservation_id:int):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM Reservation_Service WHERE reservation_id = :reservation_id",
+                           {
+                               'reservation_id': reservation_id
+                           })
+            return cursor.fetchall()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
+            raise ReservationServiceException(f'Reservation service database error: {error_obj.message}')
+        except Exception as e:
+            raise ReservationServiceException(f'Reservation service error: {e}')
+
+    def read_all(self):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM Reservation_Service")
+            return cursor.fetchall()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
             raise ReservationServiceException(f'Reservation service database error: {error_obj.message}')
         except Exception as e:
             raise ReservationServiceException(f'Reservation service error: {e}')

@@ -25,6 +25,7 @@ class Customer:
             raise CustomerError(f'Customer database error: {error_obj.message}')
 
         except Exception as e:
+            self.db.connection.rollback()
             raise CustomerError(f'Customer error: {e}')
 
     def update(self, attribute:str, value, email:str):
@@ -42,6 +43,7 @@ class Customer:
             raise CustomerError(f'Customer database error: {error_obj.message}')
 
         except Exception as e:
+            self.db.connection.rollback()
             raise CustomerError(f'Customer error: {e}')
 
     def delete(self, email:str):
@@ -57,5 +59,31 @@ class Customer:
             self.db.connection.rollback()
             raise CustomerError(f'Customer database error: {error_obj.message}')
 
+        except Exception as e:
+            self.db.connection.rollback()
+            raise CustomerError(f'Customer error: {e}')
+
+    def read(self, email:str):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM CUSTOMER WHERE email = :email",
+                           {
+                               'email': email
+                           })
+            return cursor.fetchone()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
+            raise CustomerError(f'Customer database error: {error_obj.message}')
+        except Exception as e:
+            raise CustomerError(f'Customer error: {e}')
+
+    def read_all(self):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM CUSTOMER")
+            return cursor.fetchall()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
+            raise CustomerError(f'Customer database error: {error_obj.message}')
         except Exception as e:
             raise CustomerError(f'Customer error: {e}')

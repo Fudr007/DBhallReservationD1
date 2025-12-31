@@ -25,6 +25,7 @@ class Hall:
             raise HallError(f'Hall database error: {error_obj.message}')
 
         except Exception as e:
+            self.db.connection.rollback()
             raise HallError(f'Hall error: {e}')
 
 
@@ -42,6 +43,7 @@ class Hall:
             self.db.connection.rollback()
             raise HallError(f'Hall database error: {error_obj.message}')
         except Exception as e:
+            self.db.connection.rollback()
             raise HallError(f'Hall error: {e}')
 
     def delete(self, name:str):
@@ -55,6 +57,32 @@ class Hall:
         except cx_Oracle.DatabaseError as e:
             error_obj, = e.args
             self.db.connection.rollback()
+            raise HallError(f'Hall database error: {error_obj.message}')
+        except Exception as e:
+            self.db.connection.rollback()
+            raise HallError(f'Hall error: {e}')
+
+    def read(self, name:str):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM Hall WHERE name = :name",
+                           {
+                               'name': name
+                           })
+            return cursor.fetchone()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
+            raise HallError(f'Hall database error: {error_obj.message}')
+        except Exception as e:
+            raise HallError(f'Hall error: {e}')
+
+    def read_all(self):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM Hall")
+            return cursor.fetchall()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
             raise HallError(f'Hall database error: {error_obj.message}')
         except Exception as e:
             raise HallError(f'Hall error: {e}')

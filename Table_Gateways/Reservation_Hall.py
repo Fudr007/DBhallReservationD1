@@ -22,6 +22,7 @@ class ReservationHall:
             self.db.connection.rollback()
             raise ReservationHallException(f'Reservation hall database error: {error_obj.message}')
         except Exception as e:
+            self.db.connection.rollback()
             raise ReservationHallException(f'Reservation hall error: {e}')
 
     def update(self, reservation_id:int, hall_id:int):
@@ -38,6 +39,7 @@ class ReservationHall:
             self.db.connection.rollback()
             raise ReservationHallException(f'Reservation hall database error: {error_obj.message}')
         except Exception as e:
+            self.db.connection.rollback()
             raise ReservationHallException(f'Reservation hall error: {e}')
 
     def delete(self, reservation_id:int):
@@ -50,3 +52,33 @@ class ReservationHall:
             self.db.connection.commit()
         except cx_Oracle.DatabaseError as e:
             error_obj, = e.args
+            self.db.connection.rollback()
+            raise ReservationHallException(f'Reservation hall database error: {error_obj.message}')
+        except Exception as e:
+            self.db.connection.rollback()
+            raise ReservationHallException(f'Reservation hall error: {e}')
+
+    def read(self, reservation_id:int):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM Reservation_Hall WHERE reservation_id = :reservation_id",
+                           {
+                               'reservation_id': reservation_id
+                           })
+            return cursor.fetchall()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
+            raise ReservationHallException(f'Reservation hall database error: {error_obj.message}')
+        except Exception as e:
+            raise ReservationHallException(f'Reservation hall error: {e}')
+
+    def read_all(self):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM Reservation_Hall")
+            return cursor.fetchall()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
+            raise ReservationHallException(f'Reservation hall database error: {error_obj.message}')
+        except Exception as e:
+            raise ReservationHallException(f'Reservation hall error: {e}')

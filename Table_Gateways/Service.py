@@ -23,6 +23,7 @@ class Service:
             self.db.connection.rollback()
             raise ServiceException(f'Service database error: {error_obj.message}')
         except Exception as e:
+            self.db.connection.rollback()
             raise ServiceException(f'Service error: {e}')
 
     def update(self, attribute:str, value, name:str):
@@ -39,6 +40,7 @@ class Service:
             self.db.connection.rollback()
             raise ServiceException(f'Service database error: {error_obj.message}')
         except Exception as e:
+            self.db.connection.rollback()
             raise ServiceException(f'Service error: {e}')
 
     def delete(self, name:str):
@@ -52,6 +54,32 @@ class Service:
         except cx_Oracle.DatabaseError as e:
             error_obj, = e.args
             self.db.connection.rollback()
+            raise ServiceException(f'Service database error: {error_obj.message}')
+        except Exception as e:
+            self.db.connection.rollback()
+            raise ServiceException(f'Service error: {e}')
+
+    def read(self, name:str):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM Service WHERE name = :name",
+                           {
+                               'name': name
+                           })
+            return cursor.fetchone()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
+            raise ServiceException(f'Service database error: {error_obj.message}')
+        except Exception as e:
+            raise ServiceException(f'Service error: {e}')
+
+    def read_all(self):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM Service")
+            return cursor.fetchall()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
             raise ServiceException(f'Service database error: {error_obj.message}')
         except Exception as e:
             raise ServiceException(f'Service error: {e}')

@@ -32,6 +32,7 @@ class Reservation:
             self.db.connection.rollback()
             raise ReservationException(f'Reservation database error: {error_obj.message}')
         except Exception as e:
+            self.db.connection.rollback()
             raise ReservationException(f'Reservation error: {e}')
 
     def update(self, attribute:str, value, reservation_id:int):
@@ -48,6 +49,7 @@ class Reservation:
             self.db.connection.rollback()
             raise ReservationException(f'Reservation database error: {error_obj.message}')
         except Exception as e:
+            self.db.connection.rollback()
             raise ReservationException(f'Reservation error: {e}')
 
     def delete(self, reservation_id:int):
@@ -61,6 +63,32 @@ class Reservation:
         except cx_Oracle.DatabaseError as e:
             error_obj, = e.args
             self.db.connection.rollback()
+            raise ReservationException(f'Reservation database error: {error_obj.message}')
+        except Exception as e:
+            self.db.connection.rollback()
+            raise ReservationException(f'Reservation error: {e}')
+
+    def read(self, reservation_id:int):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM Reservation WHERE reservation_id = :reservation_id",
+                           {
+                               'reservation_id': reservation_id
+                           })
+            return cursor.fetchone()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
+            raise ReservationException(f'Reservation database error: {error_obj.message}')
+        except Exception as e:
+            raise ReservationException(f'Reservation error: {e}')
+
+    def read_all(self):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT * FROM Reservation")
+            return cursor.fetchall()
+        except cx_Oracle.DatabaseError as e:
+            error_obj, = e.args
             raise ReservationException(f'Reservation database error: {error_obj.message}')
         except Exception as e:
             raise ReservationException(f'Reservation error: {e}')
