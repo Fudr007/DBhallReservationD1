@@ -1,5 +1,7 @@
 import cx_Oracle
 
+from Table_Gateways.Cash_Account import CashAccount
+
 class CustomerError(Exception):
     pass
 
@@ -7,12 +9,13 @@ class Customer:
     def __init__(self, db):
         self.db = db
 
-    def create(self, name:str, email:str, phone:str, customer_type:str):
+    def create(self, id_acc:int, name:str, email:str, phone:str, customer_type:str):
         try:
             cursor = self.db.connection.cursor()
-            cursor.execute("INSERT INTO Customer (name, email, phone, customer_type) "
-                           "VALUES (:name, :email, :phone, :customer_type)",
+            cursor.execute("INSERT INTO Customer (account_id, name, email, phone, customer_type) "
+                           "VALUES (:account_id, :name, :email, :phone, :customer_type)",
                            {
+                               "account_id": id_acc,
                                "name": name,
                                 "email": email,
                                 "phone": phone,

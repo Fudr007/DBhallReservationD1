@@ -8,7 +8,7 @@ class CashAccount:
     def __init__(self, db):
         self.db = db
 
-    def create(self, balance:float, account_type:str='CUSTOMER'):
+    def create(self, balance:float=0.0, account_type:str='CUSTOMER'):
         if account_type.upper() not in ['CUSTOMER', 'SYSTEM']:
             raise CashAccountError('Invalid account type')
         if balance < 0:
@@ -21,12 +21,15 @@ class CashAccount:
                 row = cursor.fetchone()
                 if row is not None:
                     raise CashAccountError('System account already exists')
-
-            cursor.execute("INSERT INTO CASH_ACCOUNT (BALANCE, ACCOUNT_TYPE) VALUES (:balance, :account_type)",
+            account_id = 0
+            cursor.execute("INSERT INTO CASH_ACCOUNT (BALANCE, ACCOUNT_TYPE) VALUES (:balance, :account_type) RETURNING id INTO :id",
                            {
                                'balance': balance,
-                               'account_type': account_type.upper()})
+                               'account_type': account_type.upper(),
+                                'id' : account_id
+                           })
             self.db.connection.commit()
+            return account_id
         except cx_Oracle.DatabaseError as e:
             error_obj, = e.args
             self.db.connection.rollback()
