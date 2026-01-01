@@ -16,7 +16,7 @@ class CustomerService:
             acc_id = account.create()
             customer = Customer(self.db)
             customer.create(acc_id, name, email, phone, customer_type)
-
+            return f"Customer {name} created successfully"
         except cx_Oracle.DatabaseError as e:
             error_obj, = e.args
             raise CustomerServiceException(f'Customer database error: {error_obj.message}')

@@ -1,13 +1,22 @@
+CREATE TABLE cash_account (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    account_type VARCHAR2(20) NOT NULL CHECK (account_type IN ('CUSTOMER', 'SYSTEM')),
+    balance NUMBER(10,2) NOT NULL CHECK (balance >= 0)
+);
+
+CREATE UNIQUE INDEX ux_one_system_account
+ON cash_account ( CASE WHEN account_type = 'SYSTEM' THEN account_type END);
+
 CREATE TABLE customer (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    account_id INT NOT NULL;
+    account_id INT NOT NULL,
     name VARCHAR2(100) NOT NULL,
     email VARCHAR2(100) NOT NULL CHECK (REGEXP_LIKE(email, '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')),
     phone VARCHAR2(15) NOT NULL CHECK (REGEXP_LIKE(phone, '^\+?[0-9]{9,15}$')),
-    customer_type VARCHAR2(20) NOT NULL CHECK (customer_type IN ('INDIVIDUAL', 'TEAM', 'CLUB')),
+    customer_type VARCHAR2(20) NOT NULL CHECK (customer_type IN ('INDIVIDUAL', 'TEAM')),
     is_active NUMBER(1) DEFAULT 1 CHECK (is_active IN (0,1)),
     created_at DATE DEFAULT SYSDATE,
-    FOREIGN KEY (account_id) REFERENCES account(id) ON DELETE CASCADE
+    FOREIGN KEY (account_id) REFERENCES cash_account(id) ON DELETE CASCADE
 );
 
 CREATE TABLE hall (
@@ -53,15 +62,6 @@ CREATE TABLE reservation_service (
     FOREIGN KEY (reservation_id) REFERENCES reservation(id) ON DELETE CASCADE,
     FOREIGN KEY (service_id) REFERENCES service(id)
 );
-
-CREATE TABLE cash_account (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    account_type VARCHAR2(20) NOT NULL CHECK (account_type IN ('CUSTOMER', 'SYSTEM')),
-    balance NUMBER(10,2) NOT NULL CHECK (balance >= 0)
-);
-
-ALTER TABLE account ADD CONSTRAINT unique_system_account
-UNIQUE (account_type) WHERE account_type = 'SYSTEM';
 
 CREATE TABLE payment (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
