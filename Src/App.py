@@ -34,7 +34,6 @@ class App:
         else:
             self.config_path = path_cfg
         self.sql_path = None
-        self.import_cash_accounts = None
         self.import_customers = None
         self.import_halls = None
         self.import_services = None
@@ -151,9 +150,8 @@ class App:
         try:
             not_paid_reservations = self.table_gateways()["reservation_service"].read_not_paid()
             information = self.UI.payment_form(not_paid_reservations)
-            accounts = CashAccount(self.connection)
 
-            if not accounts.check_balance(information["account_id"], information["total_price"]):
+            if not self.table_gateways()["cash_account"].check_balance(information["account_id"], information["total_price"]):
                 raise Exception("Insufficient funds on customer's account")
 
             self.table_gateways()["reservation_service"].pay_and_transfer(information["reservation_id"], information["account_id"], information["total_price"])

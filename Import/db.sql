@@ -1,3 +1,5 @@
+--Projekt: DB Hall Reservation, Petr Valenta, petr.valenta00@email.cz
+
 CREATE TABLE cash_account (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_type VARCHAR2(20) NOT NULL CHECK (account_type IN ('CUSTOMER', 'SYSTEM')),
