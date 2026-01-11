@@ -42,6 +42,24 @@ class App:
         self._is_running = False
         self.run()
 
+    def table_gateways(self):
+        customer_service = CustomerService(self.connection)
+        cash_account = CashAccount(self.connection)
+        hall = Hall(self.connection)
+        reservation = Reservation(self.connection)
+        service = Service(self.connection)
+        reservation_service = ReservationService(self.connection)
+        customer = Customer(self.connection)
+        return {
+            "customer_service": customer_service,
+            "cash_account": cash_account,
+            "hall": hall,
+            "reservation": reservation,
+            "service": service,
+            "reservation_service": reservation_service,
+            "customer": customer
+        }
+
     def run(self):
         self._is_running = True
         try:
@@ -77,8 +95,7 @@ class App:
     def add_customer(self):
         try:
             information = self.UI.customer_form()
-            customer = CustomerService(self.connection)
-            customer.create_customer_and_account(information["name"], information["email"], information["phone"], information["customer_type"])
+            self.table_gateways()["customer_service"].create_customer_and_account(information["name"], information["email"], information["phone"], information["customer_type"])
             self.UI.message("Customer created successfully")
             self.block_import = True
         except Exception as e:
@@ -86,11 +103,9 @@ class App:
 
     def increase_customers_balance(self):
         try:
-            customer_service = CustomerService(self.connection)
-            all_customers = customer_service.read_customers_and_balance()
+            all_customers = self.table_gateways()["customer_service"].read_customers_and_balance()
             information = self.UI.change_balance_form(all_customers)
-            cash_account = CashAccount(self.connection)
-            cash_account.update(information["amount"], information["balance_id"], '+')
+            self.table_gateways()["cash_account"].update(information["amount"], information["balance_id"], '+')
             self.UI.message("Balance increased successfully")
         except Exception as e:
             self.UI.message(e)
@@ -98,8 +113,7 @@ class App:
     def add_hall(self):
         try:
             information = self.UI.hall_form()
-            hall = Hall(self.connection)
-            hall.create(information["name"], information["sport_type"], information["hourly_rate"], information["capacity"])
+            self.table_gateways()["hall"].create(information["name"], information["sport_type"], information["hourly_rate"], information["capacity"])
             self.UI.message("Hall created successfully")
         except Exception as e:
             self.UI.message(e)
@@ -107,79 +121,70 @@ class App:
     def add_service(self):
         try:
             information = self.UI.service_form()
-            service = Service(self.connection)
-            service.create(information["name"], information["price_per_hour"], information["optional"])
+            self.table_gateways()["service"].create(information["name"], information["price_per_hour"], information["optional"])
             self.UI.message("Service created successfully")
         except Exception as e:
             self.UI.message(e)
 
     def add_reservation(self):
         try:
-            customers = Customer(self.connection).read_all()
-            services_optional = Service(self.connection).read_optional()
-            services_not_optional = Service(self.connection).read_not_optional()
-            halls = Hall(self.connection).read_all()
+            customers = self.table_gateways()["customer"].read_all()
+            services_optional = self.table_gateways()["service"].read_optional()
+            services_not_optional = self.table_gateways()["service"].read_not_optional()
+            halls = self.table_gateways()["hall"].read_all()
             information = self.UI.reservation_form(customers, services_optional, halls)
-            reservation_service = ReservationService(self.connection)
-            reservation_service.create_reservation(information["customer_id"], information["start_dt"], information["end_dt"], information["chosen_services"], services_not_optional, information["halls"])
+            self.table_gateways()["reservation_service"].create_reservation(information["customer_id"], information["start_dt"], information["end_dt"], information["chosen_services"], services_not_optional, information["halls"])
             self.UI.message("Reservation created successfully")
         except Exception as e:
             self.UI.message(e)
 
     def delete_reservation(self):
         try:
-            reservation_service = ReservationService(self.connection)
-            reservation_customer = reservation_service.read_reservation_detail()
+            reservation_customer = self.table_gateways()["reservation_service"].read_reservation_detail()
             information = self.UI.delete_reservation_form(reservation_customer)
-            reservation = Reservation(self.connection)
-            reservation.delete(information)
+            self.table_gateways()["reservation"].delete(information)
             self.UI.message("Reservation deleted successfully")
         except Exception as e:
             self.UI.message(e)
 
     def pay_reservation(self):
         try:
-            reservation_service = ReservationService(self.connection)
-            not_paid_reservations = reservation_service.read_not_paid()
+            not_paid_reservations = self.table_gateways()["reservation_service"].read_not_paid()
             information = self.UI.payment_form(not_paid_reservations)
             accounts = CashAccount(self.connection)
 
             if not accounts.check_balance(information["account_id"], information["total_price"]):
                 raise Exception("Insufficient funds on customer's account")
 
-            reservation_service.pay_and_transfer(information["reservation_id"], information["account_id"], information["total_price"])
+            self.table_gateways()["reservation_service"].pay_and_transfer(information["reservation_id"], information["account_id"], information["total_price"])
             self.UI.message("Reservation paid successfully")
         except Exception as e:
             self.UI.message(e)
 
     def view_now_available_halls(self):
         try:
-            reservation_service = ReservationService(self.connection)
-            available_halls = reservation_service.read_available_halls()
+            available_halls = self.table_gateways()["reservation_service"].read_available_halls()
             self.UI.print_halls(available_halls)
         except Exception as e:
             self.UI.message(e)
 
     def view_reservations_detail(self):
         try:
-            reservation_service = ReservationService(self.connection)
-            reservations = reservation_service.read_reservation_detail()
+            reservations = self.table_gateways()["reservation_service"].read_reservation_detail()
             self.UI.print_reservations_detailed(reservations)
         except Exception as e:
             self.UI.message(e)
 
     def view_report(self):
         try:
-            reservation_service = ReservationService(self.connection)
-            data = reservation_service.report()
+            data = self.table_gateways()["reservation_service"].report()
             self.UI.print_report(data)
         except Exception as e:
             self.UI.message(e)
 
     def view_customers(self):
         try:
-            customer_service = CustomerService(self.connection)
-            data = customer_service.read_customers_and_balance()
+            data = self.table_gateways()["customer_service"].read_customers_and_balance()
             self.UI.print_customers(data)
         except Exception as e:
             self.UI.message(e)

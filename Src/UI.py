@@ -263,7 +263,7 @@ class UI:
     def print_reservations_detailed(self, reservations):
         print("Detailed reservations:")
         if not reservations:
-            raise UIWrongInputError("Error in UI:  reservations found")
+            raise UIWrongInputError("Error in UI: No reservations found")
 
         for reservation in reservations:
             print(f"{reservation[0]}: {reservation[1]}-{reservation[2]}, Status: {reservation[3]}, Total price: {reservation[4]},"
